@@ -1,21 +1,23 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import supabase from '@/api/client';
-import { AuthContextType, AuthState, User } from '@/types/auth';
-import { Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import supabase from "@/api/client";
+import { AuthContextType, AuthState, User } from "@/types/auth";
+import { Session } from "@supabase/supabase-js";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     loading: true,
@@ -25,14 +27,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get initial session
     const getSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session?.user) {
           await updateUserState(session);
         } else {
           setAuthState({ user: null, loading: false });
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error("Error getting session:", error);
         setAuthState({ user: null, loading: false });
       }
     };
@@ -40,15 +44,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          await updateUserState(session);
-        } else {
-          setAuthState({ user: null, loading: false });
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await updateUserState(session);
+      } else {
+        setAuthState({ user: null, loading: false });
       }
-    );
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -57,15 +61,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Get or create user profile
       let { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
         .single();
 
-      if (error && error.code === 'PGRST116') {
+      if (error && error.code === "PGRST116") {
         // Profile doesn't exist, create it
         const { data: newProfile, error: insertError } = await supabase
-          .from('profiles')
+          .from("profiles")
           .insert({
             id: session.user.id,
             email: session.user.email!,
@@ -75,13 +79,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
 
         if (insertError) {
-          console.error('Error creating profile:', insertError);
+          console.error("Error creating profile:", insertError);
+          // If table doesn't exist, create a temporary user object
+          if (insertError.code === '42P01') { // Table doesn't exist
+            const tempUser: User = {
+              id: session.user.id,
+              email: session.user.email!,
+              name: session.user.user_metadata?.name || undefined,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+            setAuthState({ user: tempUser, loading: false });
+            return;
+          }
           setAuthState({ user: null, loading: false });
           return;
         }
         profile = newProfile;
       } else if (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error);
+        // If table doesn't exist, create a temporary user object
+        if (error.code === '42P01') { // Table doesn't exist
+          const tempUser: User = {
+            id: session.user.id,
+            email: session.user.email!,
+            name: session.user.user_metadata?.name || undefined,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setAuthState({ user: tempUser, loading: false });
+          return;
+        }
         setAuthState({ user: null, loading: false });
         return;
       }
@@ -101,20 +129,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setAuthState({ user, loading: false });
     } catch (error) {
-      console.error('Error updating user state:', error);
+      console.error("Error updating user state:", error);
       setAuthState({ user: null, loading: false });
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) {
         return { error: error.message };
       }
       return {};
     } catch (error) {
-      return { error: 'An unexpected error occurred' };
+      return { error: "An unexpected error occurred" };
     }
   };
 
@@ -125,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
         options: {
           data: {
-            name: name || '',
+            name: name || "",
           },
         },
       });
@@ -134,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return {};
     } catch (error) {
-      return { error: 'An unexpected error occurred' };
+      return { error: "An unexpected error occurred" };
     }
   };
 
@@ -142,7 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
@@ -154,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return {};
     } catch (error) {
-      return { error: 'An unexpected error occurred' };
+      return { error: "An unexpected error occurred" };
     }
   };
 

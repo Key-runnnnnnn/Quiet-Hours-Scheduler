@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/components/context/AuthProvider';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useAuth } from "@/components/context/AuthProvider";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -13,7 +19,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      router.push("/dashboard");
     }
   }, [user, loading, router]);
 
@@ -37,7 +43,8 @@ export default function Home() {
             Quiet Hours Scheduler
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Schedule your silent study time blocks and receive email reminders 10 minutes before each session starts.
+            Schedule your silent study time blocks and receive email reminders
+            10 minutes before each session starts.
           </p>
           <div className="flex gap-4 justify-center">
             <Link href="/auth/register">
@@ -65,7 +72,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Easily create and manage your quiet study time blocks with our intuitive interface.
+                Easily create and manage your quiet study time blocks with our
+                intuitive interface.
               </CardDescription>
             </CardContent>
           </Card>
@@ -81,7 +89,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Get automated email notifications 10 minutes before each scheduled session begins.
+                Get automated email notifications 10 minutes before each
+                scheduled session begins.
               </CardDescription>
             </CardContent>
           </Card>
@@ -97,7 +106,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Smart scheduling prevents conflicting sessions and ensures you never get duplicate reminders.
+                Smart scheduling prevents conflicting sessions and ensures you
+                never get duplicate reminders.
               </CardDescription>
             </CardContent>
           </Card>
